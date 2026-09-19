@@ -3,11 +3,14 @@ import assert from 'node:assert/strict';
 import { PLAYERS, TicTacToeGame } from '../public/js/game.js';
 import { ClassicComputerPlayer } from '../public/js/players.js';
 
-test('supports every board size from 3 to 6', () => {
-  for (const size of [3, 4, 5, 6]) {
+test('supports every board size from 3 to 5', () => {
+  for (const size of [3, 4, 5]) {
     const game = new TicTacToeGame(size);
     assert.equal(game.board.length, size * size);
     assert.equal(game.legalMoves().length, size * size);
+  }
+  for (const size of [2, 6, 7, 3.5, '3', NaN]) {
+    assert.throws(() => new TicTacToeGame(size), RangeError);
   }
 });
 
@@ -66,7 +69,7 @@ test('perfect 3x3 computer self-play always draws', async () => {
 });
 
 test('large-board AI always returns a legal move', async () => {
-  for (const size of [4, 5, 6]) {
+  for (const size of [4, 5]) {
     const game = new TicTacToeGame(size);
     const ai = new ClassicComputerPlayer(PLAYERS.X);
     const move = await ai.chooseMove(game);

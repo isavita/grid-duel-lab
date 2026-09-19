@@ -1,11 +1,11 @@
 # Grid Duel Lab
 
-Mobile-first Tic-Tac-Toe for 3×3, 4×4, 5×5 and 6×6 boards.
+Mobile-first Tic-Tac-Toe for 3×3, 4×4 and 5×5 boards.
 
 ## Modes
 
 - Tap **Classic** or **Jev** to choose your opponent, then tap a square to play.
-- Choose a board size from 3×3 to 6×6.
+- Choose a board size from 3×3 to 5×5.
 - Open **Game options** to play as X or O, or switch to **Watch computers**.
 - Watch mode provides independent X/O computer choices and adjustable autoplay speed.
 
@@ -13,12 +13,12 @@ The winning rule is deliberately simple: on an N×N board, complete an entire ro
 
 ## AI
 
-`ClassicComputerPlayer` and `JevPlayer` implement the same asynchronous `chooseMove(game)` interface. The game engine and classic strategy are unchanged.
+`ClassicComputerPlayer` and `JevPlayer` implement the same asynchronous `chooseMove(game)` interface. Both use the same game rules and support exactly 3×3, 4×4, and 5×5 boards.
 
 - 3×3: full Minimax with alpha-beta pruning
-- 4×4–6×6: immediate win/block detection plus depth-limited alpha-beta search and deterministic board evaluation
+- 4×4–5×5: immediate win/block detection plus depth-limited alpha-beta search and deterministic board evaluation
 
-`JevPlayer` sends the current board, player mark, N-in-a-row rules, and supplied legal moves to TypeSafe using one [Choice decision](https://docs.typesafe.ai/primitives/choice). Each option maps to one legal cell; the response must match an exact option label. The player returns only its corresponding integer board index. It accepts an engine instance or snapshot, plus an optional explicit legal-move list: `await player.chooseMove(game, legalMoves)`. The same implementation handles all four sizes.
+`JevPlayer` sends the current board, player mark, N-in-a-row rules, and supplied legal moves to TypeSafe using one [Choice decision](https://docs.typesafe.ai/primitives/choice). Each option maps to one legal cell; the response must match an exact option label. The player returns only its corresponding integer board index. It accepts an engine instance or snapshot, plus an optional explicit legal-move list: `await player.chooseMove(game, legalMoves)`. The same implementation handles all three sizes.
 
 The browser calls `POST /api/jev/move`. The server validates the board and moves, then uses the official `@typesafe-ai/sdk` client with `apiKey: process.env.TYPESAFE_AI_API_KEY` and model `jev-latest`. Credentials never go to the browser. A failed, timed-out, or invalid decision leaves the board unchanged and offers **Retry move**; there is no classic or random fallback. Pausing, restarting, or changing setup cancels the pending request and discards stale results.
 
@@ -59,7 +59,7 @@ npm run test:browser
 npm run test:layout
 ```
 
-The UI starts with a compact phone layout. Tablets and desktops get a wider, capped board; short landscape screens place setup beside the game. All board sizes retain square cells and touch targets of at least 44px.
+The tabletop-inspired UI uses ivory tiles, terracotta Xs, green Os, and a compact phone layout. Desktops place setup beside the board, while tablets keep the controls above it. Short landscape screens also place setup beside the game. All board sizes retain square cells and touch targets of at least 44px. Board-size buttons support arrow-key navigation; Escape closes Game options, and reduced-motion preferences disable mark animations.
 
 The layout check plays full games at nine phone, tablet, and desktop viewport sizes from 320px to 1920px, including portrait and landscape. It checks cell size and position after every rendered turn, horizontal overflow, touch targets, screen fit, and preservation of an active game when a phone rotates.
 
@@ -67,13 +67,13 @@ Live API matches are opt-in and use the environment key. Test 3×3 first, then r
 
 ```bash
 npm run test:jev -- 3
-npm run test:jev -- 4 5 6
+npm run test:jev -- 4 5
 npm run test:browser -- --live
 ```
 
 The match command plays Jev as both X and O against Classic, checks every returned move, and prints a JSON move history and outcome. These commands make billable API calls. `npm run test:jev` without arguments runs all sizes in ascending order.
 
-Initial live smoke test (2026-09-19, `jev-latest`): two games per size, one as each mark. All 57 Jev decisions were legal; Classic won all eight games. This checks integration, not competitive strength, and is a small sample rather than a benchmark.
+Historical live smoke test (including the since-removed 6×6 size; 2026-09-19, `jev-latest`): two games per size, one as each mark. All 57 Jev decisions were legal; Classic won all eight games. This checks integration, not competitive strength, and is a small sample rather than a benchmark.
 
 ## Vercel
 

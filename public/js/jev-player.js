@@ -1,4 +1,4 @@
-import { EMPTY, PLAYERS, findWinningLine } from './game.js';
+import { BOARD_SIZES, EMPTY, PLAYERS, findWinningLine } from './game.js';
 
 // The browser uses our server; headless matches inject the server-side decision function.
 // Neither this module nor anything else under public/ receives an API key.
@@ -24,7 +24,7 @@ export class JevPlayer {
 
 export function jevState(game, suppliedMoves) {
   const { size, board, currentPlayer } = game;
-  if (!Number.isInteger(size) || size < 3 || size > 6
+  if (!BOARD_SIZES.includes(size)
     || !Array.isArray(board) || board.length !== size * size
     || !board.every((cell) => [EMPTY, PLAYERS.X, PLAYERS.O].includes(cell))) {
     throw new Error('Invalid board state.');

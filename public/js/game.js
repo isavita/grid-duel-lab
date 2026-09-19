@@ -1,3 +1,4 @@
+export const BOARD_SIZES = Object.freeze([3, 4, 5]);
 export const EMPTY = '';
 export const PLAYERS = Object.freeze({ X: 'X', O: 'O' });
 
@@ -7,8 +8,8 @@ export function otherPlayer(player) {
 
 export class TicTacToeGame {
   constructor(size = 3) {
-    if (!Number.isInteger(size) || size < 3 || size > 6) {
-      throw new RangeError('Board size must be an integer from 3 to 6.');
+    if (!BOARD_SIZES.includes(size)) {
+      throw new RangeError('Board size must be an integer from 3 to 5.');
     }
 
     this.size = size;

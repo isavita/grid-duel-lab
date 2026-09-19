@@ -9,7 +9,7 @@ function answer(label, type = 'choice') {
 }
 
 test('Jev uses exactly the supplied moves in a Choice for every board size and mark', async () => {
-  for (const size of [3, 4, 5, 6]) {
+  for (const size of [3, 4, 5]) {
     for (const mark of ['X', 'O']) {
       const game = new TicTacToeGame(size);
       if (mark === 'O') game.play(0);
@@ -75,6 +75,7 @@ test('refuses invalid inputs before contacting Jev', async () => {
   }
   await assert.rejects(player.chooseMove({ ...game.snapshot(), board: ['X'] }));
   await assert.rejects(player.chooseMove({ ...game.snapshot(), size: 7 }));
+  await assert.rejects(player.chooseMove({ size: 6, board: Array(36).fill(''), currentPlayer: 'X', legalMoves: [0] }));
   game.play(0);
   await assert.rejects(player.chooseMove(game), /not X's turn/);
   const opponent = new JevPlayer('O', { decide: player.decide });

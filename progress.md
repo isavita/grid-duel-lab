@@ -53,3 +53,17 @@ Original prompt: Add a new JevPlayer alongside the classic computer without chan
 - Expanded layout validation passed: 684 rendered states across nine phone/tablet/desktop viewports (320–1920px), with touch/mouse input, both phone orientations, and in-progress rotation. All cells stayed square and stable, all default layouts fit, and there was no horizontal overflow.
 - Inspected tablet portrait/landscape, desktop, rotated-phone, and final develop-web-game client screenshots. The height-based width cap fixed a 20px overflow at 1024×768.
 - Temporary preview server was stopped after validation to leave the user's development ports free. Tests remain browser emulation, not physical-device certification.
+
+## Three-size visual redesign
+
+- Current request: remove 6×6, keep 3×3 / 4×4 / 5×5, and make the game look polished.
+- Removed 6×6 from the engine, shared Jev validation, UI, match commands, and supported-size test loops. Added rejection coverage for old 6×6 API requests. Historical smoke-test results remain explicitly historical.
+- Created an ivory / terracotta / green tabletop design with raised tiles, a desktop editorial layout, a compact phone layout, native radio board-size controls, and accessible settings. Preserved the previous Vercel server export fix.
+- Validation and screenshot review in progress.
+- Validation complete: all 19 unit/API tests pass, including rejection of 6×6 input and the existing Vercel export regression. Offline browser checks pass for the three sizes, both marks, autoplay, cancellation, retries, arrow-key size selection, and Escape dismissal.
+- Layout suite passes 396 rendered game states over nine phone/tablet/desktop viewports (320–1920px), with stable square cells, at least 44px cell targets, no horizontal overflow, and preserved state on phone rotation.
+- Inspected actual initial, playing, finished, and settings screenshots. Fixed a 320px vertical overflow and a landscape rules/board overlap found during review; the latter now has a regression assertion. Increased secondary text contrast.
+- Additional browser checks cover 320×480, 375×547, 560×375, 900×600, and 390×844 with 5×5 games, settings, playing as O, and reduced motion. Short portrait screens may scroll vertically; controls and board remain usable. Short desktop game fits at 900×600.
+- Ran the develop-web-game client after the visual iterations. Final screenshots: output/layout/1440-playing.png, output/layout/390-5x5-finished.png, output/layout/667-playing.png, output/playwright/tabletop-final/shot-0.png, and output/playwright/details/390-844-options.png.
+- No new live/billable Jev requests were made; browser API checks use an injected legal-move service. Validation uses Chromium emulation, not physical devices.
+- Local preview is available at http://localhost:3000. Changes are not committed, pushed, or deployed. No implementation TODOs remain for this request.

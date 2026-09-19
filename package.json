@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Mobile-first Tic-Tac-Toe lab supporting 3x3 through 6x6 boards.",
+  "description": "Mobile-first Tic-Tac-Toe lab supporting 3x3, 4x4 and 5x5 boards.",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",

@@ -46,9 +46,19 @@ const waitForHeld = async () => {
 
 try {
   await page.goto(`http://127.0.0.1:${server.address().port}`);
+  assert.deepEqual(await page.locator('input[name="board-size"]').evaluateAll(inputs => inputs.map(input => input.value)), ['3', '4', '5']);
+  // Native radio controls retain their standard arrow-key behavior.
+  await page.locator('input[name="board-size"]:checked').focus();
+  await page.keyboard.press('ArrowRight');
+  assert.equal((await state()).size, 4);
+  await page.keyboard.press('ArrowLeft');
+  assert.equal((await state()).size, 3);
+  await page.locator('#game-options summary').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#game-options').getAttribute('open'), null);
   await page.click('[data-opponent="jev"]');
-  for (const size of [3, 4, 5, 6]) {
-    await page.selectOption('#board-size', String(size));
+  for (const size of [3, 4, 5]) {
+    await page.locator(`input[name="board-size"][value="${size}"]`).check();
     await page.click('[data-index="0"]');
     await waitFor(() => JSON.parse(window.render_game_to_text()).moveCount === 2);
     const snapshot = await state();
@@ -58,7 +68,7 @@ try {
     await page.screenshot({ path: `output/browser/${live ? 'live' : 'offline'}-${size}x${size}.png`, fullPage: true });
   }
 
-  await page.selectOption('#board-size', '3');
+  await page.locator(`input[name="board-size"][value="3"]`).check();
   await page.locator('#game-options summary').click();
   await page.selectOption('#human-mark', 'O');
   await waitFor(() => JSON.parse(window.render_game_to_text()).moveCount === 1);
@@ -100,15 +110,15 @@ try {
     const oldRequest = heldRequest;
     await page.selectOption('#mode', 'human-vs-cpu');
     await page.selectOption('#human-mark', 'X');
-    await page.selectOption('#board-size', '6');
+    await page.locator(`input[name="board-size"][value="5"]`).check();
     oldRequest.resolve(oldRequest.state.legalMoves[0]);
     await page.waitForTimeout(300);
     assert.equal(aborted, true);
     assert.equal((await state()).moveCount, 0);
-    assert.equal((await state()).size, 6);
+    assert.equal((await state()).size, 5);
 
     // Errors retain the board, expose retry, and never play a fallback move.
-    await page.selectOption('#board-size', '3');
+    await page.locator(`input[name="board-size"][value="3"]`).check();
     await page.click('[data-opponent="jev"]');
     for (const failure of ['fail', 'illegal']) {
       behavior = failure;
@@ -136,14 +146,15 @@ try {
   await page.selectOption('#mode', 'human-vs-cpu');
   await page.selectOption('#human-mark', 'X');
   await page.click('[data-opponent="jev"]');
-  await page.selectOption('#board-size', '6');
+  await page.locator(`input[name="board-size"][value="5"]`).check();
   await page.locator('#game-options summary').click();
   await page.click('[data-index="0"]');
   await waitFor(() => JSON.parse(window.render_game_to_text()).moveCount === 2);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  assert.equal(await page.locator('.cell').count(), 36);
+  assert.equal(await page.locator('.cell').count(), 25);
   assert.equal(await page.locator('#computer-x-wrap').isVisible(), false);
-  await page.screenshot({ path: `output/browser/${live ? 'live' : 'offline'}-mobile-6x6.png`, fullPage: true });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `output/browser/${live ? 'live' : 'offline'}-mobile-5x5.png`, fullPage: true });
   assert.deepEqual(errors, []);
   console.log(`${live ? 'Live' : 'Offline'} browser checks passed: all sizes, both marks, autoplay${live ? '' : ', cancellation, retry, classic regression'}, mobile layout; no unexpected console errors.`);
 } finally {

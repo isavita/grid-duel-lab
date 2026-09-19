@@ -3,109 +3,93 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f6f7fb" />
-  <title>Grid Duel · Tic-Tac-Toe</title>
-  <meta name="description" content="A simple game of Xs and Os. Play Classic or Jev on boards from 3×3 to 6×6." />
+  <meta name="theme-color" content="#f4f1e9" />
+  <title>Grid Duel · One more round?</title>
+  <meta name="description" content="A little friendly competition. Play Classic or Jev in beautifully simple 3×3, 4×4 and 5×5 games of Xs and Os." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <main class="app-shell">
-    <header class="hero">
-      <span class="brand-mark" aria-hidden="true">×○</span>
-      <h1>Grid Duel</h1>
-      <span class="tagline">Your next move.</span>
+    <header class="brandbar">
+      <a class="brand" href="/" aria-label="Grid Duel home">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 8l10 10M17 8L7 18"/><circle cx="29" cy="13" r="6"/><circle cx="12" cy="29" r="6"/><path d="M24 24l10 10M34 24L24 34"/></svg>
+        <span>Grid Duel<span class="brand-dot">.</span></span>
+      </a>
+      <span class="brand-note">A little friendly competition</span>
+      <span class="edition" aria-hidden="true">Xs &amp; Os, reimagined</span>
     </header>
 
-    <section class="setup" aria-label="Game setup">
-      <div class="quick-setup">
-        <fieldset id="opponent-picker">
-          <legend>Play against</legend>
-          <div class="segmented">
-            <button type="button" data-opponent="classic" aria-pressed="true">Classic</button>
-            <button type="button" data-opponent="jev" aria-pressed="false">Jev</button>
+    <div class="duel-layout">
+      <div class="setup-panel">
+        <div class="hero">
+          <p class="eyebrow">A moment to play</p>
+          <h1>One more<br /><em>round?</em></h1>
+          <p class="intro">A small grid. A worthy rival.<br />And a little room to outthink them.</p>
+        </div>
+
+        <section class="setup" aria-label="Game setup">
+          <div class="quick-setup">
+            <fieldset id="opponent-picker">
+              <legend>Your opponent</legend>
+              <div class="segmented">
+                <button type="button" data-opponent="classic" aria-pressed="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/></svg>
+                  Classic
+                </button>
+                <button type="button" data-opponent="jev" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 6.2L21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8Z"/></svg>
+                  Jev
+                </button>
+              </div>
+            </fieldset>
+            <div id="watch-setup" class="watch-setup" hidden>
+              <label id="computer-x-wrap"><span>Computer X</span><select id="computer-x"><option value="classic">Classic</option><option value="jev">Jev</option></select></label>
+              <label id="computer-o-wrap"><span>Computer O</span><select id="computer-o"><option value="classic">Classic</option><option value="jev">Jev</option></select></label>
+            </div>
           </div>
-        </fieldset>
 
-        <div id="watch-setup" class="watch-setup" hidden>
-          <label id="computer-x-wrap">
-            <span>Computer X</span>
-            <select id="computer-x">
-              <option value="classic">Classic</option>
-              <option value="jev">Jev</option>
-            </select>
-          </label>
-          <label id="computer-o-wrap">
-            <span>Computer O</span>
-            <select id="computer-o">
-              <option value="classic">Classic</option>
-              <option value="jev">Jev</option>
-            </select>
-          </label>
+          <div class="size-and-options">
+            <fieldset class="board-size-picker">
+              <legend>Pick your playground</legend>
+              <div class="size-choices">
+                <label><input type="radio" name="board-size" value="3" checked /><span>3 × 3</span></label>
+                <label><input type="radio" name="board-size" value="4" /><span>4 × 4</span></label>
+                <label><input type="radio" name="board-size" value="5" /><span>5 × 5</span></label>
+              </div>
+            </fieldset>
+            <details id="game-options" class="game-options">
+              <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h7m4 0h5M4 17h3m4 0h9"/><circle cx="13" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span>Game options</span></summary>
+              <div class="options-grid">
+                <label><span>Mode</span><select id="mode"><option value="human-vs-cpu">Play a computer</option><option value="cpu-vs-cpu">Watch computers</option></select></label>
+                <label id="human-mark-wrap"><span>You play</span><select id="human-mark"><option value="X">X · first</option><option value="O">O · second</option></select></label>
+                <label id="speed-wrap" hidden><span>Speed</span><select id="speed"><option value="700">Slow</option><option value="350" selected>Normal</option><option value="100">Fast</option></select></label>
+              </div>
+            </details>
+          </div>
+        </section>
+        <div class="side-note" aria-hidden="true"><span>×</span><span>○</span><p>Easy to learn.<br />Hard to leave at one.</p></div>
+      </div>
+
+      <section class="game-card" aria-label="Current game">
+        <div class="game-topbar">
+          <div class="turn-status"><span id="turn-dot" class="turn-dot" aria-hidden="true"></span><p id="status" class="status" aria-live="polite">Your turn · X</p></div>
+          <div class="actions">
+            <button id="pause" class="button button--quiet" type="button" hidden>Pause</button>
+            <button id="new-game" class="button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></svg><span>New game</span></button>
+          </div>
         </div>
-
-        <label class="board-size-picker">
-          <span>Board</span>
-          <select id="board-size">
-            <option value="3">3 × 3</option>
-            <option value="4">4 × 4</option>
-            <option value="5">5 × 5</option>
-            <option value="6">6 × 6</option>
-          </select>
-        </label>
-      </div>
-
-      <details id="game-options" class="game-options">
-        <summary>Game options</summary>
-        <div class="options-grid">
-          <label>
-            <span>Mode</span>
-            <select id="mode">
-              <option value="human-vs-cpu">Play a computer</option>
-              <option value="cpu-vs-cpu">Watch computers</option>
-            </select>
-          </label>
-          <label id="human-mark-wrap">
-            <span>You play</span>
-            <select id="human-mark">
-              <option value="X">X · first</option>
-              <option value="O">O · second</option>
-            </select>
-          </label>
-          <label id="speed-wrap" hidden>
-            <span>Speed</span>
-            <select id="speed">
-              <option value="700">Slow</option>
-              <option value="350" selected>Normal</option>
-              <option value="100">Fast</option>
-            </select>
-          </label>
+        <div class="move-error"><p id="error" role="alert" hidden></p><button id="retry" class="button button--quiet" type="button" hidden>Retry move</button></div>
+        <div class="board-frame"><div id="board" class="board" aria-label="Tic-Tac-Toe board"></div></div>
+        <div class="score" aria-label="Session score">
+          <div class="score-player score-player--x"><span class="score-symbol" aria-hidden="true">×</span><div><span id="score-x-label">You · X</span><strong id="score-x">0</strong></div></div>
+          <div class="score-draw"><span>Draws</span><strong id="score-draw">0</strong></div>
+          <div class="score-player score-player--o"><span class="score-symbol" aria-hidden="true">○</span><div><span id="score-o-label">Classic · O</span><strong id="score-o">0</strong></div></div>
         </div>
-      </details>
-    </section>
-
-    <section class="game-card" aria-label="Current game">
-      <div class="game-topbar">
-        <p id="status" class="status" aria-live="polite">Your turn · X</p>
-        <div class="actions">
-          <button id="pause" class="button button--quiet" type="button" hidden>Pause</button>
-          <button id="new-game" class="button" type="button">New game</button>
-        </div>
-      </div>
-
-      <div class="move-error">
-        <p id="error" role="alert" hidden></p>
-        <button id="retry" class="button button--quiet" type="button" hidden>Retry move</button>
-      </div>
-
-      <div id="board" class="board" aria-label="Tic-Tac-Toe board"></div>
-
-      <div class="score" aria-label="Session score">
-        <div><span id="score-x-label">You · X</span><strong id="score-x">0</strong></div>
-        <div><span>Draws</span><strong id="score-draw">0</strong></div>
-        <div><span id="score-o-label">Classic · O</span><strong id="score-o">0</strong></div>
-      </div>
-    </section>
-    <p id="rules" class="rules">Get 3 in a row, column, or diagonal.</p>
+        <p id="rules" class="rules">Get 3 in a row, column, or diagonal.</p>
+      </section>
+    </div>
+    <footer class="footer"><span>Less scrolling. More playing.</span><span>Made for your next break.</span></footer>
   </main>
   <script type="module" src="/js/app.js"></script>
 </body>

@@ -4,7 +4,9 @@ import { ClassicComputerPlayer, JevPlayer } from './players.js';
 const els = {
   board: document.querySelector('#board'),
   status: document.querySelector('#status'),
-  boardSize: document.querySelector('#board-size'),
+  boardSizes: document.querySelectorAll('input[name="board-size"]'),
+  turnDot: document.querySelector('#turn-dot'),
+  gameOptions: document.querySelector('#game-options'),
   mode: document.querySelector('#mode'),
   humanMark: document.querySelector('#human-mark'),
   humanMarkWrap: document.querySelector('#human-mark-wrap'),
@@ -36,6 +38,7 @@ let resultRecorded = false;
 let pendingMove = null;
 let moveError = '';
 let opponent = 'classic';
+let lastMoveIndex = -1;
 
 function isComputer(mark) {
   return players[mark] !== null;
@@ -70,9 +73,10 @@ function startGame() {
   paused = false;
   moveError = '';
   resultRecorded = false;
+  lastMoveIndex = -1;
   els.pause.textContent = 'Pause';
 
-  const size = Number(els.boardSize.value);
+  const size = Number([...els.boardSizes].find((input) => input.checked).value);
   game = new TicTacToeGame(size);
   players = buildPlayers();
   render();
@@ -93,6 +97,7 @@ function render() {
     cell.setAttribute('aria-label', cellLabel(index, mark, snapshot.size));
 
     if (mark) cell.classList.add(`cell--${mark.toLowerCase()}`);
+    if (mark && index === lastMoveIndex) cell.classList.add('cell--new');
     if (snapshot.winningLine.includes(index)) cell.classList.add('cell--winner');
 
     const humanTurn = !snapshot.isOver && !isComputer(snapshot.currentPlayer);
@@ -140,6 +145,8 @@ function cellLabel(index, mark, size) {
 }
 
 function updateStatus() {
+  els.turnDot.dataset.mark = game.currentPlayer;
+  els.turnDot.dataset.state = paused ? 'paused' : game.isDraw ? 'draw' : game.isOver ? 'finished' : 'playing';
   if (game.winner) {
     const name = playerName(game.winner);
     els.status.textContent = `${name} ${name === 'You' ? 'win' : 'wins'} · ${game.winner}`;
@@ -196,6 +203,7 @@ async function onCellClick(event) {
 
   const index = Number(event.currentTarget.dataset.index);
   game.play(index);
+  lastMoveIndex = index;
   render();
   await continueGame(runningToken);
 }
@@ -213,6 +221,7 @@ async function continueGame(token) {
       const move = await player.chooseMove(game.clone(), game.legalMoves(), { signal: controller.signal });
       if (token !== runningToken || paused) return;
       game.play(move);
+      lastMoveIndex = move;
       render();
     } catch (error) {
       if (token !== runningToken || controller.signal.aborted) return;
@@ -235,7 +244,7 @@ function delay(ms) {
 }
 
 els.newGame.addEventListener('click', startGame);
-els.boardSize.addEventListener('change', startGame);
+els.boardSizes.forEach((input) => input.addEventListener('change', startGame));
 els.mode.addEventListener('change', startGame);
 els.humanMark.addEventListener('change', startGame);
 els.computerX.addEventListener('change', startGame);
@@ -262,6 +271,13 @@ els.retry.addEventListener('click', () => {
   moveError = '';
   render();
   continueGame(++runningToken);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && els.gameOptions.open) {
+    els.gameOptions.open = false;
+    els.gameOptions.querySelector('summary').focus();
+  }
 });
 
 window.render_game_to_text = () => JSON.stringify({

@@ -5,9 +5,9 @@ import { createJevDecision } from '../lib/jev.js';
 
 // Explicit opt-in: this command makes real, billable TypeSafe API calls.
 const sizes = process.argv.slice(2).map(Number);
-if (sizes.length === 0) sizes.push(3, 4, 5, 6);
-if (sizes.some((size) => ![3, 4, 5, 6].includes(size))) {
-  throw new Error('Usage: npm run test:jev -- [3 4 5 6]');
+if (sizes.length === 0) sizes.push(3, 4, 5);
+if (sizes.some((size) => ![3, 4, 5].includes(size))) {
+  throw new Error('Usage: npm run test:jev -- [3 4 5]');
 }
 const decide = createJevDecision();
 for (const size of sizes) {
