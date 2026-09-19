@@ -67,3 +67,13 @@ Original prompt: Add a new JevPlayer alongside the classic computer without chan
 - Ran the develop-web-game client after the visual iterations. Final screenshots: output/layout/1440-playing.png, output/layout/390-5x5-finished.png, output/layout/667-playing.png, output/playwright/tabletop-final/shot-0.png, and output/playwright/details/390-844-options.png.
 - No new live/billable Jev requests were made; browser API checks use an injected legal-move service. Validation uses Chromium emulation, not physical devices.
 - Local preview is available at http://localhost:3000. Changes are not committed, pushed, or deployed. No implementation TODOs remain for this request.
+
+## Jev coordinate-based request follow-up
+
+- User supplied a clearer state/Choice format and requested adapting it to the current setup. Replaced duplicate flat/row boards, empty strings, cell_N labels, and the compound tactical question with one 2D board, dot empties, one-based rNcN coordinates, a win/draw objective, and the short best_move question.
+- Added pure buildJevRequest(snapshot) in lib/jev.js so the request and wording are easy to inspect/tune in one place. Player mark, opponent, win length, rows, and legal options adapt to 3×3 / 4×4 / 5×5 and either side. Exact returned coordinates map back to the existing integer browser/engine API.
+- Added docs/jev-request.example.json and README usage. The user's sample had equal X/O counts with O next; retained X-first turn validation and used an extra X at r3c1 in the documented valid O-turn example.
+- All 21 unit/API tests pass, including exact outgoing JSON, all sizes and both marks, cross-row coordinate mapping, index zero, invalid/occupied/unsupplied labels, cancellation, and SDK HTTP serialization. Offline browser integration passes.
+- Live HTTP probes on jev-latest chose the expected immediate win/block in 6 of 7 fixtures; all 7 moves were legal. The corrected user example missed the r1c3 block and selected r2c2. Evidence: output/jev-coordinate-smoke.json. This small smoke test does not establish a playing-strength improvement.
+- Restarted the existing local preview with the new adapter. A separate real browser move completed successfully through /api/jev/move with no browser errors. Inspected output/playwright/jev-coordinate-browser/playing.png and matching state.json.
+- The develop-web-game client was run and inspected; its canvas-only mouse choreography cannot play this DOM board, so the live browser check used explicit Playwright selectors. No UI or classic strategy changes in this follow-up. Changes remain local and undeployed.

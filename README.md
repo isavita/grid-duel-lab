@@ -20,6 +20,21 @@ The winning rule is deliberately simple: on an N×N board, complete an entire ro
 
 `JevPlayer` sends the current board, player mark, N-in-a-row rules, and supplied legal moves to TypeSafe using one [Choice decision](https://docs.typesafe.ai/primitives/choice). Each option maps to one legal cell; the response must match an exact option label. The player returns only its corresponding integer board index. It accepts an engine instance or snapshot, plus an optional explicit legal-move list: `await player.chooseMove(game, legalMoves)`. The same implementation handles all three sizes.
 
+`buildJevRequest(snapshot)` in `lib/jev.js` defines the model-facing format and prompt in one place. It sends a 2D `board` with `"."` for empty cells, `board_size`, `current_player`, `opponent`, an N-in-a-row `win_condition`, and one-based `legal_moves` such as `r1c3`. The objective is “Choose the legal move that gives O the best chance of winning. A draw is preferable to a loss.” The single `best_move` Choice asks “Which legal move should O make now?” and describes each option as “Place O at row 1, column 3”. The mark, size, board, and options come from the active game, including either side in watch mode.
+
+See [a complete generated request](docs/jev-request.example.json). The example is a valid O turn: X has three marks and O has two. With equal mark counts, it must be X's turn. The adapter reads `answers.best_move.choice` and maps only an exact supplied coordinate back to the engine's zero-based index; the browser API still returns `{ "move": 2 }` for `r1c3` on a 3×3 board.
+
+To inspect or tune the prompt without making an API call:
+
+```js
+import { buildJevRequest } from './lib/jev.js';
+import { TicTacToeGame } from './public/js/game.js';
+
+const game = new TicTacToeGame(4); // 3, 4, or 5
+game.play(0); // O to move
+console.log(JSON.stringify(buildJevRequest(game), null, 2));
+```
+
 The browser calls `POST /api/jev/move`. The server validates the board and moves, then uses the official `@typesafe-ai/sdk` client with `apiKey: process.env.TYPESAFE_AI_API_KEY` and model `jev-latest`. Credentials never go to the browser. A failed, timed-out, or invalid decision leaves the board unchanged and offers **Retry move**; there is no classic or random fallback. Pausing, restarting, or changing setup cancels the pending request and discards stale results.
 
 ## Run locally

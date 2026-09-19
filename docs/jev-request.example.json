@@ -1,0 +1,48 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "game": "tic-tac-toe",
+    "board_size": 3,
+    "win_condition": "Get 3 marks in a row horizontally, vertically, or diagonally.",
+    "current_player": "O",
+    "opponent": "X",
+    "empty_cell": ".",
+    "board": [
+      [
+        "X",
+        "X",
+        "."
+      ],
+      [
+        "O",
+        ".",
+        "."
+      ],
+      [
+        "X",
+        "O",
+        "."
+      ]
+    ],
+    "legal_moves": [
+      "r1c3",
+      "r2c2",
+      "r2c3",
+      "r3c3"
+    ],
+    "coordinate_system": "Rows and columns are numbered starting from 1. r1c3 means row 1, column 3.",
+    "objective": "Choose the legal move that gives O the best chance of winning. A draw is preferable to a loss."
+  },
+  "questions": {
+    "best_move": {
+      "type": "choice",
+      "instructions": "Which legal move should O make now?",
+      "criteria": {
+        "r1c3": "Place O at row 1, column 3",
+        "r2c2": "Place O at row 2, column 2",
+        "r2c3": "Place O at row 2, column 3",
+        "r3c3": "Place O at row 3, column 3"
+      }
+    }
+  }
+}
