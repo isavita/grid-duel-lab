@@ -25,12 +25,12 @@ test('builds the coordinate-based request for a valid O turn without an API call
       board: [['X', 'X', '.'], ['O', '.', '.'], ['X', 'O', '.']],
       legal_moves: ['r1c3', 'r2c2', 'r2c3', 'r3c3'],
       coordinate_system: 'Rows and columns are numbered starting from 1. r1c3 means row 1, column 3.',
-      objective: 'Choose the legal move that gives O the best chance of winning. A draw is preferable to a loss.',
+      objective: 'The most important goal for O is not to lose. Prevent the opponent from winning and prefer a draw over risking a loss. Winning is the second priority: among moves that are equally safe from defeat, choose the one with the best chance of winning.',
     },
     questions: {
       best_move: {
         type: 'choice',
-        instructions: 'Which legal move should O make now?',
+        instructions: 'Which legal move should O make to avoid losing first and pursue a win second?',
         criteria: {
           r1c3: 'Place O at row 1, column 3',
           r2c2: 'Place O at row 2, column 2',
@@ -58,7 +58,7 @@ test('Jev uses exactly the supplied moves in a Choice for every board size and m
           assert.equal(request.model, 'jev-latest');
           assert.equal(request.questions.best_move.type, 'choice');
           assert.deepEqual(Object.keys(request.questions.best_move.criteria), [`r${size}c${size}`, 'r1c3']);
-          assert.equal(request.questions.best_move.instructions, `Which legal move should ${mark} make now?`);
+          assert.equal(request.questions.best_move.instructions, `Which legal move should ${mark} make to avoid losing first and pursue a win second?`);
           assert.equal(request.questions.best_move.criteria[`r${size}c${size}`], `Place ${mark} at row ${size}, column ${size}`);
           assert.equal(request.state.board.length, size);
           assert.ok(request.state.board.every(row => row.length === size));
@@ -68,7 +68,7 @@ test('Jev uses exactly the supplied moves in a Choice for every board size and m
           assert.deepEqual(request.state.legal_moves, [`r${size}c${size}`, 'r1c3']);
           assert.equal(request.state.current_player, mark);
           assert.equal(request.state.opponent, mark === 'X' ? 'O' : 'X');
-          assert.equal(request.state.objective, `Choose the legal move that gives ${mark} the best chance of winning. A draw is preferable to a loss.`);
+          assert.equal(request.state.objective, `The most important goal for ${mark} is not to lose. Prevent the opponent from winning and prefer a draw over risking a loss. Winning is the second priority: among moves that are equally safe from defeat, choose the one with the best chance of winning.`);
           assert.equal(request.state.win_condition, `Get ${size} marks in a row horizontally, vertically, or diagonally.`);
           assert.equal(options.signal, controller.signal);
           return answer(`r${size}c${size}`);

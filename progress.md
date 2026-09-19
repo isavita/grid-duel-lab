@@ -77,3 +77,9 @@ Original prompt: Add a new JevPlayer alongside the classic computer without chan
 - Live HTTP probes on jev-latest chose the expected immediate win/block in 6 of 7 fixtures; all 7 moves were legal. The corrected user example missed the r1c3 block and selected r2c2. Evidence: output/jev-coordinate-smoke.json. This small smoke test does not establish a playing-strength improvement.
 - Restarted the existing local preview with the new adapter. A separate real browser move completed successfully through /api/jev/move with no browser errors. Inspected output/playwright/jev-coordinate-browser/playing.png and matching state.json.
 - The develop-web-game client was run and inspected; its canvas-only mouse choreography cannot play this DOM board, so the live browser check used explicit Playwright selectors. No UI or classic strategy changes in this follow-up. Changes remain local and undeployed.
+
+## Avoid-loss priority follow-up
+
+- Updated both the Jev state objective and Choice instruction to make avoiding defeat the primary goal. Accepting a draw takes precedence over risking a loss; winning is the secondary goal among equally safe moves.
+- Updated the generated request example, README, and existing assertions for both player marks and all three sizes. All 21 tests pass; no live playing-strength claim was made for this wording change.
+- Restarted the local preview so subsequent Jev turns use the new instructions. Changes remain local and undeployed.
