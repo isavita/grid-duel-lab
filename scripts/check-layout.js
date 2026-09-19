@@ -12,21 +12,29 @@ const browser = await chromium.launch();
 await mkdir('output/layout', { recursive: true });
 const errors = [];
 let checkedStates = 0;
-try {
-  for (const viewport of [
+const viewports = [
     { width: 320, height: 568 },
     { width: 375, height: 667 },
     { width: 390, height: 844 },
-    { width: 1280, height: 900 },
-  ]) {
-    const page = await browser.newPage({ viewport });
+    { width: 768, height: 1024 },
+    { width: 1024, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 },
+    { width: 844, height: 390 },
+    { width: 667, height: 375 },
+];
+try {
+  for (const viewport of viewports) {
+    const touch = viewport.width <= 1024;
+    const page = await browser.newPage({ viewport, isMobile: touch, hasTouch: touch });
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     assert.equal(await page.locator('#game-options').getAttribute('open'), null);
     assert.equal(await page.locator('[data-opponent="classic"]').getAttribute('aria-pressed'), 'true');
     const initialLayout = await page.evaluate(() => ({
-      bottom: document.querySelector('#rules').getBoundingClientRect().bottom,
+      bottom: Math.max(document.querySelector('#rules').getBoundingClientRect().bottom,
+        document.querySelector('.score').getBoundingClientRect().bottom),
       overflow: document.documentElement.scrollWidth > innerWidth,
       buttons: [...document.querySelectorAll('[data-opponent]')].map((button) => button.getBoundingClientRect().height),
     }));
@@ -98,10 +106,21 @@ try {
     assert.match(await page.locator('[data-index="0"]').getAttribute('aria-label'), /X/);
     assert.equal(await page.locator('.mark').count(), 2);
     await page.screenshot({ path: `output/layout/${viewport.width}-playing.png`, fullPage: true });
+    if (viewport.width === 390) {
+      const beforeRotation = await page.evaluate(() => window.render_game_to_text());
+      await page.setViewportSize({ width: 844, height: 390 });
+      const rotated = await page.locator('.board').boundingBox();
+      assert.ok(Math.abs(rotated.width - rotated.height) < 1);
+      assert.equal(await page.evaluate(() => window.render_game_to_text()), beforeRotation,
+        'Rotating a phone must preserve the game');
+      await page.screenshot({ path: 'output/layout/phone-rotated.png', fullPage: true });
+      await page.setViewportSize(viewport);
+      assert.equal(await page.evaluate(() => window.render_game_to_text()), beforeRotation);
+    }
     await page.close();
   }
   assert.deepEqual(errors, []);
-  console.log(`Layout checks passed: ${checkedStates} rendered states, 3×3–6×6, four viewports (320–1280px); square cells with no position/size changes, no horizontal overflow, default mobile game fits the screen.`);
+  console.log(`Layout checks passed: ${checkedStates} rendered states, 3×3–6×6, ${viewports.length} phone/tablet/desktop viewports (320–1920px), touch and mouse, and phone rotation; square cells with no position/size changes, no horizontal overflow, default game fits the screen.`);
 } finally {
   await browser.close();
   await new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); });

@@ -23,7 +23,7 @@ button:focus-visible, select:focus-visible, summary:focus-visible {
 .app-shell {
   width: min(100%, 440px);
   margin: 0 auto;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 
 .hero { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
@@ -38,7 +38,7 @@ legend, .setup label > span { display: block; padding: 0; margin-bottom: 7px; fo
 .segmented button { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: #566174; font-size: 0.9rem; font-weight: 650; }
 .segmented button[aria-pressed="true"] { color: var(--accent); background: #fff; box-shadow: 0 1px 3px #2738611a; }
 .board-size-picker { flex: 0 0 90px; }
-.setup select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #202939; padding: 0 9px; font-size: 0.875rem; }
+.setup select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #202939; padding: 0 9px; font-size: 1rem; }
 .board-size-picker select { min-height: 52px; }
 .watch-setup { display: grid; grid-template-columns: 1fr 1fr; flex: 1; gap: 8px; min-width: 0; }
 .watch-setup label { min-width: 0; }
@@ -110,15 +110,55 @@ legend, .setup label > span { display: block; padding: 0; margin-bottom: 7px; fo
 .score strong { font-size: 1rem; font-weight: 650; color: #202939; }
 .rules { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: 0.72rem; line-height: 1.4; }
 @media (max-width: 350px) {
-  .app-shell { padding-inline: 12px; }
+  .app-shell { padding-right: max(12px, env(safe-area-inset-right)); padding-left: max(12px, env(safe-area-inset-left)); }
   .tagline { display: none; }
   .quick-setup { gap: 8px; }
   .board-size-picker { flex-basis: 76px; }
   .button { padding-inline: 9px; }
+  .options-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
 @media (max-height: 650px) {
   .app-shell { padding-top: max(12px, env(safe-area-inset-top)); }
   .hero { margin-bottom: 12px; }
   .score, .rules { margin-top: 8px; }
+}
+
+/* Keep the phone flow; give larger screens a comfortable, bounded board. */
+@media (min-width: 600px) and (min-height: 551px) {
+  .app-shell {
+    width: min(100%, 520px, max(400px, calc(100dvh - 300px)));
+    padding-inline: 24px;
+    padding-top: clamp(24px, 4vh, 48px);
+  }
+  .hero { margin-bottom: 24px; }
+  h1 { font-size: 1.5rem; }
+  .status { font-size: 1rem; }
+  .board { border-radius: 20px; }
+  .score { margin-top: 16px; }
+  .score div, .rules { font-size: 0.8rem; }
+}
+
+/* On a rotated phone, keep setup beside the board instead of above it. */
+@media (min-width: 560px) and (max-height: 550px), (min-width: 900px) and (max-height: 700px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(220px, 240px) minmax(272px, min(420px, calc(100dvh - 105px)));
+    grid-template-rows: auto auto 1fr;
+    gap: 0 24px;
+    width: fit-content;
+    max-width: 100%;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .hero { grid-column: 1; grid-row: 1; margin-bottom: 16px; }
+  .tagline { display: none; }
+  .setup { grid-column: 1; grid-row: 2; align-self: start; }
+  .game-card { grid-column: 2; grid-row: 1 / -1; }
+  .rules { grid-column: 1; grid-row: 3; align-self: start; text-align: left; }
+  .quick-setup { gap: 8px; }
+  .board-size-picker { flex-basis: 76px; }
+  .options-grid { grid-template-columns: 1fr; }
+  .watch-setup { grid-template-columns: 1fr; }
+  .quick-setup:has(.watch-setup:not([hidden])) { align-items: start; }
+  .button { padding-inline: 9px; }
 }

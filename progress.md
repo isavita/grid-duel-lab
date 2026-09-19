@@ -44,3 +44,12 @@ Original prompt: Add a new JevPlayer alongside the classic computer without chan
 - Ran and inspected the develop-web-game client capture after each visual iteration. Final previews: output/layout/375-playing.png, output/layout/320-initial.png, output/layout/390-6x6-finished.png, output/board-redesign-final/shot-0.png.
 - Browser validation used Chromium at mobile/desktop viewport sizes. WebKit is not installed; no physical-device validation was performed.
 - Engine and Jev decision code remain unchanged by this UI follow-up.
+
+## Responsive layout follow-up
+
+- User requested a mobile-first UI that also looks good on tablets and desktops.
+- Kept the phone layout as the default, added a bounded wider layout for tablets/desktops, and moved controls alongside the board on short landscape screens.
+- Form controls use 16px text to avoid mobile input zoom; safe-area padding protects controls near phone notches.
+- Expanded layout validation passed: 684 rendered states across nine phone/tablet/desktop viewports (320–1920px), with touch/mouse input, both phone orientations, and in-progress rotation. All cells stayed square and stable, all default layouts fit, and there was no horizontal overflow.
+- Inspected tablet portrait/landscape, desktop, rotated-phone, and final develop-web-game client screenshots. The height-based width cap fixed a 20px overflow at 1024×768.
+- Temporary preview server was stopped after validation to leave the user's development ports free. Tests remain browser emulation, not physical-device certification.

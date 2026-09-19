@@ -59,7 +59,9 @@ npm run test:browser
 npm run test:layout
 ```
 
-The layout check plays full games at 320px, 375px, 390px, and 1280px widths, checking cell size and position after every rendered turn. It also verifies square cells on every board size, usable touch targets, and the compact mobile setup.
+The UI starts with a compact phone layout. Tablets and desktops get a wider, capped board; short landscape screens place setup beside the game. All board sizes retain square cells and touch targets of at least 44px.
+
+The layout check plays full games at nine phone, tablet, and desktop viewport sizes from 320px to 1920px, including portrait and landscape. It checks cell size and position after every rendered turn, horizontal overflow, touch targets, screen fit, and preservation of an active game when a phone rotates.
 
 Live API matches are opt-in and use the environment key. Test 3×3 first, then reuse the same adapter for the larger boards:
 
