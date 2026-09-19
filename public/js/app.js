@@ -1,5 +1,5 @@
 import { PLAYERS, TicTacToeGame } from './game.js';
-import { ClassicComputerPlayer } from './players.js';
+import { ClassicComputerPlayer, JevPlayer } from './players.js';
 
 const els = {
   board: document.querySelector('#board'),
@@ -10,8 +10,14 @@ const els = {
   humanMarkWrap: document.querySelector('#human-mark-wrap'),
   speed: document.querySelector('#speed'),
   speedWrap: document.querySelector('#speed-wrap'),
+  computerX: document.querySelector('#computer-x'),
+  computerO: document.querySelector('#computer-o'),
+  computerXWrap: document.querySelector('#computer-x-wrap'),
+  computerOWrap: document.querySelector('#computer-o-wrap'),
   newGame: document.querySelector('#new-game'),
   pause: document.querySelector('#pause'),
+  retry: document.querySelector('#retry'),
+  error: document.querySelector('#error'),
   scoreX: document.querySelector('#score-x'),
   scoreO: document.querySelector('#score-o'),
   scoreDraw: document.querySelector('#score-draw'),
@@ -23,17 +29,24 @@ let runningToken = 0;
 let paused = false;
 let score = { X: 0, O: 0, draw: 0 };
 let resultRecorded = false;
+let pendingMove = null;
+let moveError = '';
 
 function isComputer(mark) {
-  return players[mark] instanceof ClassicComputerPlayer;
+  return players[mark] !== null;
+}
+
+function makeComputer(mark) {
+  const selection = mark === PLAYERS.X ? els.computerX : els.computerO;
+  return selection.value === 'jev' ? new JevPlayer(mark) : new ClassicComputerPlayer(mark);
 }
 
 function buildPlayers() {
   const mode = els.mode.value;
   if (mode === 'cpu-vs-cpu') {
     return {
-      X: new ClassicComputerPlayer(PLAYERS.X),
-      O: new ClassicComputerPlayer(PLAYERS.O),
+      X: makeComputer(PLAYERS.X),
+      O: makeComputer(PLAYERS.O),
     };
   }
 
@@ -41,13 +54,15 @@ function buildPlayers() {
   const computerMark = humanMark === PLAYERS.X ? PLAYERS.O : PLAYERS.X;
   return {
     [humanMark]: null,
-    [computerMark]: new ClassicComputerPlayer(computerMark),
+    [computerMark]: makeComputer(computerMark),
   };
 }
 
 function startGame() {
+  pendingMove?.abort();
   runningToken += 1;
   paused = false;
+  moveError = '';
   resultRecorded = false;
   els.pause.textContent = 'Pause';
 
@@ -104,8 +119,9 @@ function updateStatus() {
     return;
   }
 
-  const role = isComputer(game.currentPlayer) ? 'Computer' : 'You';
-  els.status.textContent = `${game.currentPlayer} · ${role} to move`;
+  const role = !isComputer(game.currentPlayer) ? 'You'
+    : players[game.currentPlayer] instanceof JevPlayer ? 'Jev' : 'Classic';
+  els.status.textContent = `${game.currentPlayer} · ${role} ${paused ? 'paused' : 'to move'}`;
 }
 
 function recordResult(result) {
@@ -126,6 +142,12 @@ function updateControls() {
   els.speedWrap.hidden = !cpuVsCpu;
   els.pause.hidden = !cpuVsCpu;
   els.pause.disabled = game?.isOver ?? true;
+  els.computerXWrap.hidden = !cpuVsCpu && els.humanMark.value === PLAYERS.X;
+  els.computerOWrap.hidden = !cpuVsCpu && els.humanMark.value === PLAYERS.O;
+  els.error.hidden = !moveError;
+  els.error.textContent = moveError;
+  els.retry.hidden = !moveError;
+  els.retry.disabled = paused;
 }
 
 async function onCellClick(event) {
@@ -138,17 +160,27 @@ async function onCellClick(event) {
 }
 
 async function continueGame(token) {
-  while (!game.isOver && !paused && isComputer(game.currentPlayer) && token === runningToken) {
+  while (!game.isOver && !paused && !moveError && isComputer(game.currentPlayer) && token === runningToken) {
     render();
     await delay(currentDelay());
     if (paused || token !== runningToken || game.isOver) return;
 
     const player = players[game.currentPlayer];
-    const move = await player.chooseMove(game.clone());
-    if (token !== runningToken || paused) return;
-
-    game.play(move);
-    render();
+    const controller = new AbortController();
+    pendingMove = controller;
+    try {
+      const move = await player.chooseMove(game.clone(), game.legalMoves(), { signal: controller.signal });
+      if (token !== runningToken || paused) return;
+      game.play(move);
+      render();
+    } catch (error) {
+      if (token !== runningToken || controller.signal.aborted) return;
+      moveError = error.message || 'Computer could not choose a move. Please retry.';
+      render();
+      return;
+    } finally {
+      if (pendingMove === controller) pendingMove = null;
+    }
   }
 }
 
@@ -165,8 +197,11 @@ els.newGame.addEventListener('click', startGame);
 els.boardSize.addEventListener('change', startGame);
 els.mode.addEventListener('change', startGame);
 els.humanMark.addEventListener('change', startGame);
+els.computerX.addEventListener('change', startGame);
+els.computerO.addEventListener('change', startGame);
 els.speed.addEventListener('change', () => {});
 els.pause.addEventListener('click', async () => {
+  pendingMove?.abort();
   paused = !paused;
   runningToken += 1;
   els.pause.textContent = paused ? 'Resume' : 'Pause';
@@ -175,6 +210,24 @@ els.pause.addEventListener('click', async () => {
   if (!paused) {
     await continueGame(runningToken);
   }
+});
+
+els.retry.addEventListener('click', () => {
+  moveError = '';
+  render();
+  continueGame(++runningToken);
+});
+
+window.render_game_to_text = () => JSON.stringify({
+  ...game.snapshot(),
+  mode: els.mode.value,
+  players: Object.fromEntries(Object.entries(players).map(([mark, player]) => [mark,
+    player === null ? 'human' : player instanceof JevPlayer ? 'jev' : 'classic',
+  ])),
+  paused,
+  error: moveError,
+  score,
+  coordinates: 'Zero-based row-major indices from the top-left corner.',
 });
 
 startGame();

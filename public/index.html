@@ -7,7 +7,7 @@
   <title>Grid Duel Lab · Tic-Tac-Toe 3×3–6×6</title>
   <meta
     name="description"
-    content="Play Tic-Tac-Toe on 3×3 to 6×6 boards against the classic computer or watch computer vs computer."
+    content="Play Tic-Tac-Toe on 3×3 to 6×6 boards against Classic or Jev, or watch the computers compete."
   />
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -18,7 +18,7 @@
         <p class="eyebrow">Tic-Tac-Toe 3×3–6×6</p>
         <h1>Grid Duel Lab</h1>
       </div>
-      <p class="subtitle">Play the classic computer, or let two computers battle.</p>
+      <p class="subtitle">Play Classic or Jev, or let the computers battle.</p>
     </header>
 
     <section class="panel setup" aria-label="Game setup">
@@ -56,6 +56,22 @@
           <option value="100">Fast</option>
         </select>
       </label>
+
+      <label id="computer-x-wrap" hidden>
+        <span>Computer X</span>
+        <select id="computer-x">
+          <option value="classic">Classic</option>
+          <option value="jev">Jev</option>
+        </select>
+      </label>
+
+      <label id="computer-o-wrap">
+        <span>Computer O</span>
+        <select id="computer-o">
+          <option value="classic">Classic</option>
+          <option value="jev">Jev</option>
+        </select>
+      </label>
     </section>
 
     <section class="game-card">
@@ -65,6 +81,11 @@
           <button id="pause" class="button button--quiet" type="button" hidden>Pause</button>
           <button id="new-game" class="button" type="button">New game</button>
         </div>
+      </div>
+
+      <div class="move-error">
+        <p id="error" role="alert" hidden></p>
+        <button id="retry" class="button button--quiet" type="button" hidden>Retry move</button>
       </div>
 
       <div id="board" class="board" aria-label="Tic-Tac-Toe board"></div>

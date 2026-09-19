@@ -1,5 +1,7 @@
 import { EMPTY, PLAYERS, getLines, otherPlayer } from './game.js';
 
+export { JevPlayer } from './jev-player.js';
+
 const WIN_SCORE = 1_000_000;
 
 export class ClassicComputerPlayer {

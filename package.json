@@ -7,9 +7,17 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "test:jev": "node scripts/jev-matches.js",
+    "test:browser": "node scripts/check-browser.js"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }

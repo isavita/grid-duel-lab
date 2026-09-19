@@ -8,6 +8,9 @@
 
 * { box-sizing: border-box; }
 
+.move-error:has(#error:not([hidden])) { margin-bottom: 14px; }
+#error { color: #ffa198; line-height: 1.4; }
+
 html { min-height: 100%; }
 
 body {
