@@ -3,46 +3,176 @@
   "state": {
     "game": "tic-tac-toe",
     "board_size": 3,
-    "win_condition": "Get 3 marks in a row horizontally, vertically, or diagonally.",
+    "win_condition": "Get 3 marks in a full row, column, or main diagonal.",
     "current_player": "O",
     "opponent": "X",
     "empty_cell": ".",
     "board": [
       [
+        "O",
         "X",
-        "X",
-        "."
+        "O"
       ],
       [
-        "O",
+        "X",
+        "X",
+        "O"
+      ],
+      [
+        "X",
         ".",
-        "."
-      ],
-      [
-        "X",
-        "O",
         "."
       ]
     ],
     "legal_moves": [
-      "r1c3",
-      "r2c2",
-      "r2c3",
+      "r3c2",
       "r3c3"
     ],
-    "coordinate_system": "Rows and columns are numbered starting from 1. r1c3 means row 1, column 3.",
-    "objective": "The most important goal for O is not to lose. Prevent the opponent from winning and prefer a draw over risking a loss. Winning is the second priority: among moves that are equally safe from defeat, choose the one with the best chance of winning."
+    "coordinate_system": "Rows and columns start at 1 at the top-left. r1c3 means row 1, column 3.",
+    "objective": "Take an immediate win: winning ends the game and prevents any loss. Otherwise avoid defeat, prefer a draw to a loss, and pursue a forced win over a draw. Consider the opponent's best reply, not a cooperative opponent."
   },
   "questions": {
-    "best_move": {
-      "type": "choice",
-      "instructions": "Which legal move should O make to avoid losing first and pursue a win second?",
-      "criteria": {
-        "r1c3": "Place O at row 1, column 3",
-        "r2c2": "Place O at row 2, column 2",
-        "r2c3": "Place O at row 2, column 3",
-        "r3c3": "Place O at row 3, column 3"
-      }
+    "r3c2": {
+      "type": "score",
+      "instructions": {
+        "question": "Evaluate the outcome for O after playing r3c2. Evaluate the resulting board below, not the original board.",
+        "player_being_evaluated": "O",
+        "board_after_move": [
+          [
+            "O",
+            "X",
+            "O"
+          ],
+          [
+            "X",
+            "X",
+            "O"
+          ],
+          [
+            "X",
+            "O",
+            "."
+          ]
+        ],
+        "lines_after_move": {
+          "rows": [
+            "O X O",
+            "X X O",
+            "X O ."
+          ],
+          "columns": [
+            "O X X",
+            "X X O",
+            "O O ."
+          ],
+          "main_diagonals": [
+            "O X .",
+            "O X X"
+          ]
+        },
+        "next_player_if_game_continues": "X",
+        "evaluation_order": [
+          "First check whether any resulting row, column, or main diagonal contains 3 O marks. If so, O has already won. The game ends immediately; X cannot reply. Blocking a threat is unnecessary after winning.",
+          "Otherwise consider every legal X reply. If X can complete a winning line on its next turn, this candidate loses, even if O also threatens a later win.",
+          "Inspect the supplied opponent reply lines only if the candidate has not already won. After each opponent reply, it is your turn. First check whether you can win immediately. Otherwise, if the opponent threatens wins at two different empty cells, you can block only one and will lose. Two lines sharing the same winning empty cell are only one threat. If any opponent reply forces defeat, evaluate this candidate as a loss regardless of its other replies.",
+          "Prefer a guaranteed draw to a possible loss. A forced win is better than a draw, and winning immediately is best."
+        ],
+        "reply_lines_if_game_continues": {
+          "X_at_r3c3": {
+            "rows": [
+              "O X O",
+              "X X O",
+              "X O X"
+            ],
+            "columns": [
+              "O X X",
+              "X X O",
+              "O O X"
+            ],
+            "main_diagonals": [
+              "O X X",
+              "O X X"
+            ]
+          }
+        }
+      },
+      "criteria": [
+        "O will lose: X can force a win from this resulting board even if O defends optimally.",
+        "O can secure a draw against optimal X play, but cannot force a win.",
+        "O can force a win on a future turn against optimal X play, but has not already won.",
+        "O has already won on this resulting board: a full row, column, or main diagonal consists entirely of O."
+      ]
+    },
+    "r3c3": {
+      "type": "score",
+      "instructions": {
+        "question": "Evaluate the outcome for O after playing r3c3. Evaluate the resulting board below, not the original board.",
+        "player_being_evaluated": "O",
+        "board_after_move": [
+          [
+            "O",
+            "X",
+            "O"
+          ],
+          [
+            "X",
+            "X",
+            "O"
+          ],
+          [
+            "X",
+            ".",
+            "O"
+          ]
+        ],
+        "lines_after_move": {
+          "rows": [
+            "O X O",
+            "X X O",
+            "X . O"
+          ],
+          "columns": [
+            "O X X",
+            "X X .",
+            "O O O"
+          ],
+          "main_diagonals": [
+            "O X O",
+            "O X X"
+          ]
+        },
+        "next_player_if_game_continues": "X",
+        "evaluation_order": [
+          "First check whether any resulting row, column, or main diagonal contains 3 O marks. If so, O has already won. The game ends immediately; X cannot reply. Blocking a threat is unnecessary after winning.",
+          "Otherwise consider every legal X reply. If X can complete a winning line on its next turn, this candidate loses, even if O also threatens a later win.",
+          "Inspect the supplied opponent reply lines only if the candidate has not already won. After each opponent reply, it is your turn. First check whether you can win immediately. Otherwise, if the opponent threatens wins at two different empty cells, you can block only one and will lose. Two lines sharing the same winning empty cell are only one threat. If any opponent reply forces defeat, evaluate this candidate as a loss regardless of its other replies.",
+          "Prefer a guaranteed draw to a possible loss. A forced win is better than a draw, and winning immediately is best."
+        ],
+        "reply_lines_if_game_continues": {
+          "X_at_r3c2": {
+            "rows": [
+              "O X O",
+              "X X O",
+              "X X O"
+            ],
+            "columns": [
+              "O X X",
+              "X X X",
+              "O O O"
+            ],
+            "main_diagonals": [
+              "O X O",
+              "O X X"
+            ]
+          }
+        }
+      },
+      "criteria": [
+        "O will lose: X can force a win from this resulting board even if O defends optimally.",
+        "O can secure a draw against optimal X play, but cannot force a win.",
+        "O can force a win on a future turn against optimal X play, but has not already won.",
+        "O has already won on this resulting board: a full row, column, or main diagonal consists entirely of O."
+      ]
     }
   }
 }

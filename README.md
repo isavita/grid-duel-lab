@@ -15,14 +15,22 @@ The winning rule is deliberately simple: on an N×N board, complete an entire ro
 
 `ClassicComputerPlayer` and `JevPlayer` implement the same asynchronous `chooseMove(game)` interface. Both use the same game rules and support exactly 3×3, 4×4, and 5×5 boards.
 
-- 3×3: full Minimax with alpha-beta pruning
-- 4×4–5×5: immediate win/block detection plus depth-limited alpha-beta search and deterministic board evaluation
+Classic uses full Minimax with alpha-beta pruning on 3×3, and immediate win/block detection plus depth-limited search on 4×4–5×5.
 
-`JevPlayer` sends the current board, player mark, N-in-a-row rules, and supplied legal moves to TypeSafe using one [Choice decision](https://docs.typesafe.ai/primitives/choice). Each option maps to one legal cell; the response must match an exact option label. The player returns only its corresponding integer board index. It accepts an engine instance or snapshot, plus an optional explicit legal-move list: `await player.chooseMove(game, legalMoves)`. The same implementation handles all three sizes.
+Jev makes every move from its own evaluations. It receives the current board and **one [Score question](https://docs.typesafe.ai/primitives/score) per supplied legal move**, batched in a single API call. Each question includes the board after that move, with every row, column, and main diagonal written out. With eight or fewer empty cells, it also receives all hypothetical opponent reply lines. This is board expansion only: no local win/block filter, tactical labels, Minimax, or rule-based move override is used. Even a sole legal move goes through Jev.
 
-`buildJevRequest(snapshot)` in `lib/jev.js` defines the model-facing format and prompt in one place. It sends a 2D `board` with `"."` for empty cells, `board_size`, `current_player`, `opponent`, an N-in-a-row `win_condition`, and one-based `legal_moves` such as `r1c3`. The objective is “The most important goal for O is not to lose. Prevent the opponent from winning and prefer a draw over risking a loss. Winning is the second priority: among moves that are equally safe from defeat, choose the one with the best chance of winning.” The single `best_move` Choice asks “Which legal move should O make to avoid losing first and pursue a win second?” and describes each option as “Place O at row 1, column 3”. The mark, size, board, and options come from the active game, including either side in watch mode.
+`buildJevRequest(snapshot)` in `lib/jev.js` defines the format and instructions in one place. The shared state contains the complete current 2D `board`, `"."` empties, size, marks, winning rule, and one-based coordinates such as `r1c3`. Each question explicitly identifies its move and player, so it can be evaluated independently. All fields adapt to 3×3, 4×4, and 5×5 and to either mark.
 
-See [a complete generated request](docs/jev-request.example.json). The example is a valid O turn: X has three marks and O has two. With equal mark counts, it must be X's turn. The adapter reads `answers.best_move.choice` and maps only an exact supplied coordinate back to the engine's zero-based index; the browser API still returns `{ "move": 2 }` for `r1c3` on a 3×3 board.
+The instructions tell Jev to check for a completed win first: winning ends the game, so the opponent cannot reply and there is no need to block a threat. Otherwise it must consider immediate losses, the opponent's strongest reply, and forks. Jev evaluates each resulting position on four ordered levels:
+
+1. Forced loss, even with optimal defense.
+2. A draw can be secured, but no win can be forced.
+3. A future win can be forced.
+4. The move has already won the game.
+
+The adapter first minimizes Jev's probability assigned to the loss level, then prefers the higher outcome score for equal estimated loss risk. These probabilities are model judgments, not proven game outcomes or calibrated loss odds. Ties preserve the supplied move order. Every requested evaluation must be valid; missing or malformed results fail instead of guessing.
+
+See [a complete generated request](docs/jev-request.example.json) for the reported screenshot position: O can win at `r3c3`, while `r3c2` merely blocks. Both moves remain available to Jev. The browser endpoint still returns an integer index, such as `{ "move": 8 }` for `r3c3` on 3×3. `JevPlayer` accepts a game or snapshot and an optional legal-move list: `await player.chooseMove(game, legalMoves)`.
 
 To inspect or tune the prompt without making an API call:
 
@@ -64,7 +72,7 @@ npm run dev
 npm test
 ```
 
-Offline tests cover the Choice request/response contract, legal-move enforcement, invalid inputs, failures, credential configuration, the HTTP endpoint, and the existing engine/classic behavior.
+Offline tests cover Score serialization, the complete current and successor boards, bounded reply context, model-only decisions, loss-first ranking, legal-move enforcement, invalid evaluations, cancellation, credentials, the HTTP endpoint, and existing engine/classic behavior. They verify the integration, not model strength.
 
 Browser checks (offline by default, with an injected decision service):
 
@@ -85,6 +93,18 @@ npm run test:jev -- 3
 npm run test:jev -- 4 5
 npm run test:browser -- --live
 ```
+
+Repeatable live tactical probes cover the screenshot, taking a win before blocking, mandatory blocks, and fork defense:
+
+```bash
+npm run test:jev:tactics
+npm run test:jev:tactics -- --repeats 3
+npm run test:jev:tactics -- --case screenshot-win --repeats 3
+```
+
+The tactical command saves requests, answers, selected moves, and timings to `output/jev-evaluation/tactics.json`. It exits nonzero for missed tactics or API failures, preserving failures for inspection. Expected moves are test-only references and never enter Jev's request.
+
+Latest small live sample (2026-09-19, `jev-latest`): the final Score request passed **29/30** probes across ten positions repeated three times. All 27 immediate win/block probes passed, including the screenshot in all three repeats. Fork defense passed 2/3. A phone-sized browser replay of the reported position also produced O's bottom-right win through the live API. Two complete 3×3 matches against Classic, one as each mark, both ended in draws. Prompt changes during exploration affected fork results, so this is evidence of improvement on these cases, not a guarantee of perfect play.
 
 The match command plays Jev as both X and O against Classic, checks every returned move, and prints a JSON move history and outcome. These commands make billable API calls. `npm run test:jev` without arguments runs all sizes in ascending order.
 

@@ -9,6 +9,7 @@
     "dev": "node --watch server.js",
     "test": "node --test",
     "test:jev": "node scripts/jev-matches.js",
+    "test:jev:tactics": "node scripts/check-jev-tactics.js",
     "test:browser": "node scripts/check-browser.js",
     "test:layout": "node scripts/check-layout.js"
   },
