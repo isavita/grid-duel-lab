@@ -4,11 +4,10 @@ Mobile-first Tic-Tac-Toe for 3×3, 4×4, 5×5 and 6×6 boards.
 
 ## Modes
 
-- You vs computer
-- Computer vs computer
-- Choose X or O in human mode
-- Adjustable autoplay speed in computer-vs-computer mode
-- Choose Classic or Jev independently for each computer
+- Tap **Classic** or **Jev** to choose your opponent, then tap a square to play.
+- Choose a board size from 3×3 to 6×6.
+- Open **Game options** to play as X or O, or switch to **Watch computers**.
+- Watch mode provides independent X/O computer choices and adjustable autoplay speed.
 
 The winning rule is deliberately simple: on an N×N board, complete an entire row, column or main diagonal of length N.
 
@@ -36,7 +35,7 @@ Open <http://localhost:3000>.
 
 For Jev, start the server from an environment containing `TYPESAFE_AI_API_KEY`. The local testing environment already supplies it. Classic play and `/health` work without a key. Never put the key in public files, source code, or a committed configuration file. If using an ignored `.env` file, load it explicitly with Node 20.6+: `node --env-file=.env server.js`.
 
-To watch Jev against Classic, select **Computer vs computer**, set **Computer X** to **Jev** and **Computer O** to **Classic** (or swap them), then choose a board size.
+To watch Jev against Classic, open **Game options**, select **Watch computers**, set **Computer X** to **Jev** and **Computer O** to **Classic** (or swap them), then choose a board size.
 
 Development mode with server restart:
 
@@ -57,7 +56,10 @@ Browser checks (offline by default, with an injected decision service):
 ```bash
 npx playwright install chromium
 npm run test:browser
+npm run test:layout
 ```
+
+The layout check plays full games at 320px, 375px, 390px, and 1280px widths, checking cell size and position after every rendered turn. It also verifies square cells on every board size, usable touch targets, and the compact mobile setup.
 
 Live API matches are opt-in and use the environment key. Test 3×3 first, then reuse the same adapter for the larger boards:
 

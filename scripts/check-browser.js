@@ -46,7 +46,7 @@ const waitForHeld = async () => {
 
 try {
   await page.goto(`http://127.0.0.1:${server.address().port}`);
-  await page.selectOption('#computer-o', 'jev');
+  await page.click('[data-opponent="jev"]');
   for (const size of [3, 4, 5, 6]) {
     await page.selectOption('#board-size', String(size));
     await page.click('[data-index="0"]');
@@ -59,12 +59,13 @@ try {
   }
 
   await page.selectOption('#board-size', '3');
+  await page.locator('#game-options summary').click();
   await page.selectOption('#human-mark', 'O');
-  await page.selectOption('#computer-x', 'jev');
   await waitFor(() => JSON.parse(window.render_game_to_text()).moveCount === 1);
   assert.equal((await state()).players.X, 'jev');
 
   await page.selectOption('#mode', 'cpu-vs-cpu');
+  await page.selectOption('#computer-x', 'jev');
   await page.selectOption('#computer-o', 'classic');
   await page.selectOption('#speed', '100');
   await page.click('#new-game');
@@ -108,7 +109,7 @@ try {
 
     // Errors retain the board, expose retry, and never play a fallback move.
     await page.selectOption('#board-size', '3');
-    await page.selectOption('#computer-o', 'jev');
+    await page.click('[data-opponent="jev"]');
     for (const failure of ['fail', 'illegal']) {
       behavior = failure;
       await page.click('#new-game');
@@ -134,8 +135,9 @@ try {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.selectOption('#mode', 'human-vs-cpu');
   await page.selectOption('#human-mark', 'X');
-  await page.selectOption('#computer-o', 'jev');
+  await page.click('[data-opponent="jev"]');
   await page.selectOption('#board-size', '6');
+  await page.locator('#game-options summary').click();
   await page.click('[data-index="0"]');
   await waitFor(() => JSON.parse(window.render_game_to_text()).moveCount === 2);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

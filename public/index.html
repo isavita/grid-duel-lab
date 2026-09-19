@@ -3,80 +3,89 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d1117" />
-  <title>Grid Duel Lab · Tic-Tac-Toe 3×3–6×6</title>
-  <meta
-    name="description"
-    content="Play Tic-Tac-Toe on 3×3 to 6×6 boards against Classic or Jev, or watch the computers compete."
-  />
+  <meta name="theme-color" content="#f6f7fb" />
+  <title>Grid Duel · Tic-Tac-Toe</title>
+  <meta name="description" content="A simple game of Xs and Os. Play Classic or Jev on boards from 3×3 to 6×6." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <main class="app-shell">
     <header class="hero">
-      <div>
-        <p class="eyebrow">Tic-Tac-Toe 3×3–6×6</p>
-        <h1>Grid Duel Lab</h1>
-      </div>
-      <p class="subtitle">Play Classic or Jev, or let the computers battle.</p>
+      <span class="brand-mark" aria-hidden="true">×○</span>
+      <h1>Grid Duel</h1>
+      <span class="tagline">Your next move.</span>
     </header>
 
-    <section class="panel setup" aria-label="Game setup">
-      <label>
-        <span>Board</span>
-        <select id="board-size">
-          <option value="3">3 × 3</option>
-          <option value="4">4 × 4</option>
-          <option value="5">5 × 5</option>
-          <option value="6">6 × 6</option>
-        </select>
-      </label>
+    <section class="setup" aria-label="Game setup">
+      <div class="quick-setup">
+        <fieldset id="opponent-picker">
+          <legend>Play against</legend>
+          <div class="segmented">
+            <button type="button" data-opponent="classic" aria-pressed="true">Classic</button>
+            <button type="button" data-opponent="jev" aria-pressed="false">Jev</button>
+          </div>
+        </fieldset>
 
-      <label>
-        <span>Mode</span>
-        <select id="mode">
-          <option value="human-vs-cpu">You vs computer</option>
-          <option value="cpu-vs-cpu">Computer vs computer</option>
-        </select>
-      </label>
+        <div id="watch-setup" class="watch-setup" hidden>
+          <label id="computer-x-wrap">
+            <span>Computer X</span>
+            <select id="computer-x">
+              <option value="classic">Classic</option>
+              <option value="jev">Jev</option>
+            </select>
+          </label>
+          <label id="computer-o-wrap">
+            <span>Computer O</span>
+            <select id="computer-o">
+              <option value="classic">Classic</option>
+              <option value="jev">Jev</option>
+            </select>
+          </label>
+        </div>
 
-      <label id="human-mark-wrap">
-        <span>You play</span>
-        <select id="human-mark">
-          <option value="X">X · first</option>
-          <option value="O">O · second</option>
-        </select>
-      </label>
+        <label class="board-size-picker">
+          <span>Board</span>
+          <select id="board-size">
+            <option value="3">3 × 3</option>
+            <option value="4">4 × 4</option>
+            <option value="5">5 × 5</option>
+            <option value="6">6 × 6</option>
+          </select>
+        </label>
+      </div>
 
-      <label id="speed-wrap" hidden>
-        <span>Speed</span>
-        <select id="speed">
-          <option value="700">Slow</option>
-          <option value="350" selected>Normal</option>
-          <option value="100">Fast</option>
-        </select>
-      </label>
-
-      <label id="computer-x-wrap" hidden>
-        <span>Computer X</span>
-        <select id="computer-x">
-          <option value="classic">Classic</option>
-          <option value="jev">Jev</option>
-        </select>
-      </label>
-
-      <label id="computer-o-wrap">
-        <span>Computer O</span>
-        <select id="computer-o">
-          <option value="classic">Classic</option>
-          <option value="jev">Jev</option>
-        </select>
-      </label>
+      <details id="game-options" class="game-options">
+        <summary>Game options</summary>
+        <div class="options-grid">
+          <label>
+            <span>Mode</span>
+            <select id="mode">
+              <option value="human-vs-cpu">Play a computer</option>
+              <option value="cpu-vs-cpu">Watch computers</option>
+            </select>
+          </label>
+          <label id="human-mark-wrap">
+            <span>You play</span>
+            <select id="human-mark">
+              <option value="X">X · first</option>
+              <option value="O">O · second</option>
+            </select>
+          </label>
+          <label id="speed-wrap" hidden>
+            <span>Speed</span>
+            <select id="speed">
+              <option value="700">Slow</option>
+              <option value="350" selected>Normal</option>
+              <option value="100">Fast</option>
+            </select>
+          </label>
+        </div>
+      </details>
     </section>
 
-    <section class="game-card">
+    <section class="game-card" aria-label="Current game">
       <div class="game-topbar">
-        <p id="status" class="status" aria-live="polite">X · You to move</p>
+        <p id="status" class="status" aria-live="polite">Your turn · X</p>
         <div class="actions">
           <button id="pause" class="button button--quiet" type="button" hidden>Pause</button>
           <button id="new-game" class="button" type="button">New game</button>
@@ -91,15 +100,13 @@
       <div id="board" class="board" aria-label="Tic-Tac-Toe board"></div>
 
       <div class="score" aria-label="Session score">
-        <div><span>X</span><strong id="score-x">0</strong></div>
+        <div><span id="score-x-label">You · X</span><strong id="score-x">0</strong></div>
         <div><span>Draws</span><strong id="score-draw">0</strong></div>
-        <div><span>O</span><strong id="score-o">0</strong></div>
+        <div><span id="score-o-label">Classic · O</span><strong id="score-o">0</strong></div>
       </div>
     </section>
-
-    <p class="rules">Fill an entire row, column, or diagonal to win.</p>
+    <p id="rules" class="rules">Get 3 in a row, column, or diagonal.</p>
   </main>
-
   <script type="module" src="/js/app.js"></script>
 </body>
 </html>

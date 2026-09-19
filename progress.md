@@ -32,3 +32,15 @@ Original prompt: Add a new JevPlayer alongside the classic computer without chan
 
 - No implementation TODOs. Changes are local; nothing has been deployed.
 - Jev's playing strength is limited in the initial smoke test. Any strategy/prompt tuning should be measured separately from this integration.
+
+## Board and mobile interface follow-up
+
+- User requested stable square cells and a much simpler, mobile-friendly interface with easy opponent selection.
+- Reproduced the bug at 375px: empty rows were 100px high; after two moves they became 113px, 113px, and 73px because rows were sized by their content.
+- Added explicit equal grid rows and columns, zero minimum cell dimensions, and absolutely positioned SVG marks. Removed the press-to-shrink effect.
+- Replaced the dark panels with a compact light interface: Classic/Jev buttons and board size up front; mode, mark, and speed under Game options. Watch mode retains independent X/O selectors.
+- Validation passed: 304 rendered states in complete 3×3–6×6 games at 320×568, 375×667, 390×844, and 1280×900. Every cell remained square and retained its position/size; no horizontal overflow; main controls, board, score, and rule text fit the tested phone viewports.
+- All 18 unit/HTTP tests and the updated offline browser suite pass, including retry, cancellation, human X/O, watch mode, and classic self-play.
+- Ran and inspected the develop-web-game client capture after each visual iteration. Final previews: output/layout/375-playing.png, output/layout/320-initial.png, output/layout/390-6x6-finished.png, output/board-redesign-final/shot-0.png.
+- Browser validation used Chromium at mobile/desktop viewport sizes. WebKit is not installed; no physical-device validation was performed.
+- Engine and Jev decision code remain unchanged by this UI follow-up.

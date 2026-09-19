@@ -12,8 +12,9 @@ const els = {
   speedWrap: document.querySelector('#speed-wrap'),
   computerX: document.querySelector('#computer-x'),
   computerO: document.querySelector('#computer-o'),
-  computerXWrap: document.querySelector('#computer-x-wrap'),
-  computerOWrap: document.querySelector('#computer-o-wrap'),
+  opponentPicker: document.querySelector('#opponent-picker'),
+  watchSetup: document.querySelector('#watch-setup'),
+  opponentButtons: document.querySelectorAll('[data-opponent]'),
   newGame: document.querySelector('#new-game'),
   pause: document.querySelector('#pause'),
   retry: document.querySelector('#retry'),
@@ -21,6 +22,9 @@ const els = {
   scoreX: document.querySelector('#score-x'),
   scoreO: document.querySelector('#score-o'),
   scoreDraw: document.querySelector('#score-draw'),
+  scoreXLabel: document.querySelector('#score-x-label'),
+  scoreOLabel: document.querySelector('#score-o-label'),
+  rules: document.querySelector('#rules'),
 };
 
 let game;
@@ -31,6 +35,7 @@ let score = { X: 0, O: 0, draw: 0 };
 let resultRecorded = false;
 let pendingMove = null;
 let moveError = '';
+let opponent = 'classic';
 
 function isComputer(mark) {
   return players[mark] !== null;
@@ -38,7 +43,8 @@ function isComputer(mark) {
 
 function makeComputer(mark) {
   const selection = mark === PLAYERS.X ? els.computerX : els.computerO;
-  return selection.value === 'jev' ? new JevPlayer(mark) : new ClassicComputerPlayer(mark);
+  const kind = els.mode.value === 'cpu-vs-cpu' ? selection.value : opponent;
+  return kind === 'jev' ? new JevPlayer(mark) : new ClassicComputerPlayer(mark);
 }
 
 function buildPlayers() {
@@ -83,7 +89,7 @@ function render() {
     cell.className = 'cell';
     cell.type = 'button';
     cell.dataset.index = String(index);
-    cell.textContent = mark;
+    if (mark) cell.appendChild(createMark(mark));
     cell.setAttribute('aria-label', cellLabel(index, mark, snapshot.size));
 
     if (mark) cell.classList.add(`cell--${mark.toLowerCase()}`);
@@ -100,6 +106,33 @@ function render() {
   updateScore();
 }
 
+function createMark(mark) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('class', 'mark');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  const shape = document.createElementNS(ns, mark === PLAYERS.X ? 'path' : 'circle');
+  if (mark === PLAYERS.X) {
+    shape.setAttribute('d', 'M18 18L82 82M82 18L18 82');
+  } else {
+    shape.setAttribute('cx', '50');
+    shape.setAttribute('cy', '50');
+    shape.setAttribute('r', '34');
+  }
+  shape.setAttribute('fill', 'none');
+  shape.setAttribute('stroke', 'currentColor');
+  shape.setAttribute('stroke-width', '10');
+  shape.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(shape);
+  return svg;
+}
+
+function playerName(mark) {
+  return !isComputer(mark) ? 'You' : players[mark] instanceof JevPlayer ? 'Jev' : 'Classic';
+}
+
 function cellLabel(index, mark, size) {
   const row = Math.floor(index / size) + 1;
   const col = (index % size) + 1;
@@ -108,7 +141,8 @@ function cellLabel(index, mark, size) {
 
 function updateStatus() {
   if (game.winner) {
-    els.status.textContent = `${game.winner} wins`;
+    const name = playerName(game.winner);
+    els.status.textContent = `${name} ${name === 'You' ? 'win' : 'wins'} · ${game.winner}`;
     recordResult(game.winner);
     return;
   }
@@ -119,9 +153,10 @@ function updateStatus() {
     return;
   }
 
-  const role = !isComputer(game.currentPlayer) ? 'You'
-    : players[game.currentPlayer] instanceof JevPlayer ? 'Jev' : 'Classic';
-  els.status.textContent = `${game.currentPlayer} · ${role} ${paused ? 'paused' : 'to move'}`;
+  const role = playerName(game.currentPlayer);
+  els.status.textContent = paused ? `Paused · ${game.currentPlayer}`
+    : role === 'You' ? `Your turn · ${game.currentPlayer}`
+    : `${role} to move · ${game.currentPlayer}`;
 }
 
 function recordResult(result) {
@@ -134,16 +169,22 @@ function updateScore() {
   els.scoreX.textContent = String(score.X);
   els.scoreO.textContent = String(score.O);
   els.scoreDraw.textContent = String(score.draw);
+  els.scoreXLabel.textContent = `${playerName(PLAYERS.X)} · X`;
+  els.scoreOLabel.textContent = `${playerName(PLAYERS.O)} · O`;
 }
 
 function updateControls() {
   const cpuVsCpu = els.mode.value === 'cpu-vs-cpu';
   els.humanMarkWrap.hidden = cpuVsCpu;
   els.speedWrap.hidden = !cpuVsCpu;
-  els.pause.hidden = !cpuVsCpu;
+  els.pause.hidden = !cpuVsCpu || game.isOver;
   els.pause.disabled = game?.isOver ?? true;
-  els.computerXWrap.hidden = !cpuVsCpu && els.humanMark.value === PLAYERS.X;
-  els.computerOWrap.hidden = !cpuVsCpu && els.humanMark.value === PLAYERS.O;
+  els.opponentPicker.hidden = cpuVsCpu;
+  els.watchSetup.hidden = !cpuVsCpu;
+  els.opponentButtons.forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.opponent === opponent));
+  });
+  els.rules.textContent = `Get ${game.size} in a row, column, or diagonal.`;
   els.error.hidden = !moveError;
   els.error.textContent = moveError;
   els.retry.hidden = !moveError;
@@ -199,6 +240,11 @@ els.mode.addEventListener('change', startGame);
 els.humanMark.addEventListener('change', startGame);
 els.computerX.addEventListener('change', startGame);
 els.computerO.addEventListener('change', startGame);
+els.opponentButtons.forEach((button) => button.addEventListener('click', () => {
+  if (opponent === button.dataset.opponent) return;
+  opponent = button.dataset.opponent;
+  startGame();
+}));
 els.speed.addEventListener('change', () => {});
 els.pause.addEventListener('click', async () => {
   pendingMove?.abort();
