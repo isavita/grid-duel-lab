@@ -114,8 +114,12 @@ export function createAppServer({ decide } = {}) {
   });
 }
 
+// Vercel imports the server; local and Railway startup own the port listener.
+const server = createAppServer();
+export default server;
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  createAppServer().listen(port, '0.0.0.0', () => {
+  server.listen(port, '0.0.0.0', () => {
     console.log(`Grid Duel Lab listening on http://0.0.0.0:${port}`);
   });
 }

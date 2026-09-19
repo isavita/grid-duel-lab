@@ -75,6 +75,12 @@ The match command plays Jev as both X and O against Classic, checks every return
 
 Initial live smoke test (2026-09-19, `jev-latest`): two games per size, one as each mark. All 57 Jev decisions were legal; Classic won all eight games. This checks integration, not competitive strength, and is a small sample rather than a benchmark.
 
+## Vercel
+
+`server.js` exports the HTTP server as its default export so Vercel can load it as a Node.js function. It starts its own listener only when run directly with `npm start`, which also supports local development and Railway.
+
+Set `TYPESAFE_AI_API_KEY` in the Vercel project's environment variables to enable Jev, then deploy the updated source. Classic play and `/health` work without a key. After deploying, check `/health`, the game at `/`, and a Jev move if the key is configured.
+
 ## Railway
 
 The app uses a Node web server with the TypeSafe SDK as its runtime dependency. `railway.json` configures `npm start` and the `/health` deployment health check. The server reads Railway's `PORT` environment variable and exposes:

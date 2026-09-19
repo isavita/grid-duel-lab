@@ -1,11 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { Server } from 'node:http';
 import { createAppServer } from '../server.js';
 import { TicTacToeGame } from '../public/js/game.js';
 
 async function serve(t, options) {
-  const server = createAppServer(options);
+  return serveServer(t, createAppServer(options));
+}
+
+async function serveServer(t, server) {
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   t.after(() => new Promise((resolve) => {
@@ -17,6 +21,25 @@ async function serve(t, options) {
 }
 
 const post = (body) => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+
+test('deployment entry point exports an HTTP server without starting a listener', async (t) => {
+  const { default: server } = await import('../server.js');
+  assert.ok(server instanceof Server, 'the deployment runtime needs a default HTTP server export');
+  assert.equal(server.listening, false);
+  const request = await serveServer(t, server);
+  assert.deepEqual(await (await request('/health')).json(), { status: 'ok' });
+  for (const [path, contentType] of [
+    ['/', 'text/html'],
+    ['/styles.css', 'text/css'],
+    ['/js/app.js', 'text/javascript'],
+  ]) {
+    const response = await request(path);
+    assert.equal(response.status, 200);
+    assert.ok(response.headers.get('content-type').startsWith(contentType));
+    assert.ok((await response.text()).length > 0);
+  }
+  assert.equal((await request('/api/jev/move')).status, 405);
+});
 
 test('move endpoint returns only a move, supporting all four sizes', async (t) => {
   let calls = 0;
